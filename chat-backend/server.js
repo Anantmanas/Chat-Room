@@ -1,7 +1,8 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-
+// load env file
+require("dotenv").config();
 const ChatMessage = require("./models/ChatMessage");
 
 const app = express();
@@ -10,8 +11,8 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-const dburi =
-  "mongodb+srv://anant_manas:QxUTRGFmp18pHTEs@chat-app-cluster.phha6qn.mongodb.net/?retryWrites=true&w=majority&appName=chat-app-cluster";
+const dburi = process.env.DB_URI;
+
 mongoose.connect(dburi, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
