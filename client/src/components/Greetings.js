@@ -31,7 +31,7 @@ const Greeting = ({ setCustomUsername, authToken }) => {
     }
     try {
       const res = await axios.post(
-        "http://localhost:5000/auth/set-username",
+        "https://mernback-lsed.onrender.com/auth/set-username",
         { username },
         {
           headers: {

@@ -3,8 +3,8 @@ import "./App.css";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
-
-const ChatRoom = () => {
+const API_BASE_URL = "https://mernback-lsed.onrender.com";
+const ChatRoom = ({ onLogout }) => {
   const [messages, setMessages] = useState([]);
   const [user, setUser] = useState("");
   const [message, setMessage] = useState("");
@@ -26,18 +26,13 @@ const ChatRoom = () => {
   const fetchUsername = async () => {
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch(
-        "http://localhost:5000/auth/check-username",
-        {
-          headers: {
-            "x-auth-token": token,
-          },
-        }
-      );
-      if (!response.ok) throw new Error("Network response was not ok.");
-      const data = await response.json();
-      if (data.username) {
-        setUser(data.username);
+      const response = await axios.get(`${API_BASE_URL}/auth/check-username`, {
+        headers: {
+          "x-auth-token": token,
+        },
+      });
+      if (response.data.username) {
+        setUser(response.data.username);
       }
     } catch (error) {
       console.error("Error fetching username:", error);
@@ -46,9 +41,8 @@ const ChatRoom = () => {
 
   const fetchMessages = async () => {
     try {
-      const response = await fetch("http://localhost:5000/messages");
-      const data = await response.json();
-      setMessages(data);
+      const response = await axios.get(`${API_BASE_URL}/messages`);
+      setMessages(response.data);
     } catch (error) {
       console.error("Error fetching messages:", error);
     }
@@ -60,14 +54,16 @@ const ChatRoom = () => {
       return;
     }
     try {
-      await fetch("http://localhost:5000/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-auth-token": localStorage.getItem("authToken"),
-        },
-        body: JSON.stringify({ user: user, message }),
-      });
+      await axios.post(
+        `${API_BASE_URL}/messages`,
+        { user: user, message },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "x-auth-token": localStorage.getItem("authToken"),
+          },
+        }
+      );
       setMessage("");
       setError("");
       fetchMessages();
@@ -85,10 +81,17 @@ const ChatRoom = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.post("http://localhost:5000/auth/logout");
+      await axios.post(`${API_BASE_URL}/auth/logout`);
       localStorage.removeItem("authToken");
+      onLogout();
       toast.success("Logged out successfully!");
-      setTimeout(() => navigate("/"), 2000);
+
+      setTimeout(() => {
+        toast("Redirecting...");
+        setTimeout(() => {
+          navigate("/");
+        }, 500);
+      }, 1500);
     } catch (error) {
       toast.error("Error logging out, please try again.");
     }
@@ -96,8 +99,7 @@ const ChatRoom = () => {
 
   const handleDelete = async (messageId) => {
     try {
-      await fetch(`http://localhost:5000/messages/${messageId}`, {
-        method: "DELETE",
+      await axios.delete(`${API_BASE_URL}/messages/${messageId}`, {
         headers: {
           "x-auth-token": localStorage.getItem("authToken"),
         },
